@@ -41,11 +41,15 @@ def pull_n_save(n):
     # store last payoff
     data["slots"][n][2][0].append(load["last-payoff"])
 
-def phase1a(x,y):
+def phase1a(slots_to_test,y):
     # x is slot machine number and y is number of trials per slot machine
-    for i in range(0, x-1):
+    for i in slots_to_test:
         for j in range(y):
-            pull_n_save(x)
+            pull_n_save(i)
+
+def phase1b(slots_to_test):
+
+def update_beta_models
 
 def run_regression():
     return None
@@ -54,7 +58,6 @@ def run_regression():
 def identify():
     return None
 #assign profitable/unprofitable to other 80 machines based on model
-
 #then pull the 5%??? most profitable
 #also consider track utility? if utility drops below threshold then break-out?
 
@@ -62,7 +65,13 @@ def phase1(state):
     last_slot = data["last-slot"]
 
     #model alpha, beta, and scale variable for x number of slot machines and y number of trials
-    phase1a(20, 30)
+    ### to-do ###
+    # run phase1a on randomly selected slot machines. People will tend to train on first n slot machines, so we want to take advantage of lesser known slot machines.
+    slots_to_test = range(0,29)
+    phase1a(slots_to_test, 30)
+
+    beta_models = []
+    phase2a(slots_to_test, beta_models)
 
 
 # if len(data["slots"][last_slot][0]) == 0:
