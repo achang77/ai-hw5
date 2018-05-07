@@ -53,6 +53,7 @@ data= {
 #     return student
 
 #pull n-th slot machine and save data
+
 def pull_n_save(n):
     return {
         "team-code": state["team-code"],
@@ -66,6 +67,7 @@ def pull_n_save(n):
     data["slots"][n][1].append(load["last-cost"])
     # store last payoff
     data["slots"][n][2].append(load["last-payoff"])
+    data["ct"] = ct+1
 
 def phase1a(slots_to_train,y):
     # x is slot machine number and y is number of trials per slot machine
@@ -105,6 +107,19 @@ def phase1c(beta_model_vars, beta_models):
 
     beta_models = {'alpha': alpha.fit(predictors, beta_model_vars[:, 9]), 'beta': beta.fit(predictors, beta_model_vars[:, 10]), 'loc': loc.fit(predictors, beta_model_vars[:, 11]), 'scale': scale.fit(predictors, beta_model_vars[:, 12])}
 
+def phase1d(beta_models, slots_to_pull):
+    for i in range(0, len(data["slots"])):
+        alpha_expected = beta_models['alpha'].predict([data["slots"][i][0][0], data["slots"][i][0][1], data["slots"][i][0][2], data["slots"][i][0][3], data["slots"][i][0][4], data["slots"][i][0][5], data["slots"][i][0][6], data["slots"][i][0][7]])
+        beta_expected = beta_models['beta'].predict([data["slots"][i][0][0], data["slots"][i][0][1], data["slots"][i][0][2], data["slots"][i][0][3], data["slots"][i][0][4], data["slots"][i][0][5], data["slots"][i][0][6], data["slots"][i][0][7]])
+        loc_expected = beta_models['loc'].predict([data["slots"][i][0][0], data["slots"][i][0][1], data["slots"][i][0][2], data["slots"][i][0][3], data["slots"][i][0][4], data["slots"][i][0][5], data["slots"][i][0][6], data["slots"][i][0][7]])
+        scale_expected = beta_models['scale'].predict([data["slots"][i][0][0], data["slots"][i][0][1], data["slots"][i][0][2], data["slots"][i][0][3], data["slots"][i][0][4], data["slots"][i][0][5], data["slots"][i][0][6], data["slots"][i][0][7]])
+        bm_expected = scipy.stats.beta.mean(alpha_expected, beta_expected, loc_expected, scale_expected)
+        mean_expected = np.mean(data["slots"][11][i])
+        cost = data["slots"][i][1]
+        # weight actual means higher than averages. model is included because it may provide insight into high impact low probability payout vallues.
+        slots_to_pull.append(i, 0.3 * bm_expected + 0.7 * mean_expected - cost)
+    sorted(slots_to_pull, key=lambda x: x[1])
+
 def phase1(state):
     ### to do ###
     # Add if condition to not pull if too many negative expected payouts
@@ -126,18 +141,21 @@ def phase1(state):
     #     if i in slots_to_train:
     #         slots_to_predict.remove(i)
 
-    beta_model_vars = []
-    beta_models = []
 
     phase1a(slots_high_sample, 30)
     phase1a(slots_medium_sample, 20)
     phase1a(slots_low_sample, 10)
+
+    beta_model_vars = None
+    beta_models = None
+    next_slots_to_pull = None
 
     phase1b(slots_high_sample, beta_model_vars, 3)
     phase1b(slots_medium_sample, beta_model_vars, 2)
     phase1b(slots_low_sample, beta_model_vars, 1)
 
     phase1c(beta_model_vars, beta_models)
+    phase1d(beta_models, next_slots_to_pull)
 
 
 
