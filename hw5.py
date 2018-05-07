@@ -79,32 +79,31 @@ def update_beta_coeff(slots_to_train):
         data["slots"][i][3] = np.mean(data["slots"][i][1][0])
         data["slots"][i][4] = scipy.stats.beta.fit(data["slots"][i][2][0])
 
-def create_beta_model_vars_list(slots_to_train, beta_model_vars):
-    beta_model_vars_temp = []
-    for i in slots_to_train:
-        #append slot machine number, slot machine 8 bits separated into 1s and 0s,
-        beta_model_vars_temp.append(i, data["slots"][i][0][0], data["slots"][i][0][1], data["slots"][i][0][2], data["slots"][i][0][3], data["slots"][i][0][4], data["slots"][i][0][5], data["slots"][i][0][6], data["slots"][i][0][7], data["slots"][i][4][0], data["slots"][i][4][1], data["slots"][i][4][2], data["slots"][i][4][3])
-    return np.array(beta_model_vars_temp)
+def add_beta_model_vars(slots_to_train, beta_model_vars, times):
+    for h in range(times):
+        for i in slots_to_train:
+            #append slot machine number, slot machine 8 bits separated into 1s and 0s,
+            beta_model_vars.append(i, data["slots"][i][0][0], data["slots"][i][0][1], data["slots"][i][0][2], data["slots"][i][0][3], data["slots"][i][0][4], data["slots"][i][0][5], data["slots"][i][0][6], data["slots"][i][0][7], data["slots"][i][4][0], data["slots"][i][4][1], data["slots"][i][4][2], data["slots"][i][4][3])
 
-def phase1b(slots_to_train, beta_model_vars):
+def phase1b(slots_to_train, beta_model_vars, times):
     # create beta prediction models list
     # parse metadata to 8-bit binary variables when creating beta model variable data
 
     update_beta_coeff(slots_to_train)
-    beta_model_vars = create_beta_model_vars_list(slots_to_train, beta_model_vars)
+    add_beta_model_vars(slots_to_train, beta_model_vars, times)
 
 def phase1c(beta_model_vars, beta_models):
 
     # generate beta coefficient prediction model from binary metadata predictors
 
-    X = beta_model_vars[:, [1, 2, 3, 4, 5, 6, 7, 8]]
+    predictors = beta_model_vars[:, [1, 2, 3, 4, 5, 6, 7, 8]]
 
     alpha = linear_model.LinearRegression()
     beta = linear_model.LinearRegression()
     loc = linear_model.LinearRegression()
     scale = linear_model.LinearRegression()
 
-    beta_models = [alpha.fit(X, beta_model_vars[:, 9]), beta.fit(X, beta_model_vars[:, 10]), loc.fit(X, beta_model_vars[:, 11]), scale.fit(X, beta_model_vars[:, 12])]
+    beta_models = {'alpha': alpha.fit(predictors, beta_model_vars[:, 9]), 'beta': beta.fit(predictors, beta_model_vars[:, 10]), 'loc': loc.fit(predictors, beta_model_vars[:, 11]), 'scale': scale.fit(predictors, beta_model_vars[:, 12])}
 
 def phase1(state):
     ### to do ###
@@ -115,19 +114,29 @@ def phase1(state):
     #model alpha, beta, and scale variable for x number of slot machines and y number of trials
     ### to-do ###
     # run phase1a on randomly selected slot machines. People will tend to train on first n slot machines, so we want to take advantage of lesser known slot machines.
-    slots_to_train = range(0,29)
 
-    slots_to_predict = range(0,99)
-    #create list of slots not in train by removing items in 0-99 range list
-    for i in len(slots_to_predict):
-        if i in slots_to_train:
-            slots_to_predict.remove(i)
+    slots_high_sample = range(70, 79)
+    slots_medium_sample = range(80, 99)
+    slots_low_sample = range(0, 69)
+    slots_all = range(0, 99)
+
+    # slots_to_predict = range(0,99)
+    # #create list of slots not in train by removing items in 0-99 range list
+    # for i in len(slots_to_predict):
+    #     if i in slots_to_train:
+    #         slots_to_predict.remove(i)
 
     beta_model_vars = []
     beta_models = []
 
-    phase1a(slots_to_train, 30)
-    phase1b(slots_to_train, beta_model_vars)
+    phase1a(slots_high_sample, 30)
+    phase1a(slots_medium_sample, 20)
+    phase1a(slots_low_sample, 10)
+
+    phase1b(slots_high_sample, beta_model_vars, 3)
+    phase1b(slots_medium_sample, beta_model_vars, 2)
+    phase1b(slots_low_sample, beta_model_vars, 1)
+
     phase1c(beta_model_vars, beta_models)
 
 
