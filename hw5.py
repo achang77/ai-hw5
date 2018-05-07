@@ -1,4 +1,5 @@
-from scipy.stats import beta
+import scipy.stats.beta
+import numpy
 
 # sample data sent by Freenor
 """
@@ -8,6 +9,9 @@ Machine 11 - string, cost, payoff
 data["slots"][11][0][0] = string
 data["slots"][11][1][0] = cost
 data["slots"][11][2][0] = payoff
+data["slots"][11][3][0] = average cost
+data["slots"][11][4][0] = beta distribution model
+#attributes: alpha, beta, lower limit, scale
 """
 
 state = {"team-code": "eef8976e",
@@ -19,7 +23,7 @@ state = {"team-code": "eef8976e",
 
 # where we store our data and models
 data= {
-"slots": [ [ [], [], [] ] for x in range(100) ],
+"slots": [ [ [], [], [], [] ] for x in range(100) ],
 "last-slot":None,
 "ct":0,
 "our_utility":1000000,
@@ -48,8 +52,12 @@ def phase1a(slots_to_test,y):
             pull_n_save(i)
 
 def phase1b(slots_to_test):
+    update_beta_models(slots_to_test)
 
-def update_beta_models
+def update_beta_models(slots_to_test):
+    for i in slots_to_test:
+        data["slots"][i][3] = numpy.mean(data["slots"][i][1][0])
+        data["slots"][i][4][0] = scipy.stats.beta.fit(data["slots"][i][2][0])
 
 def run_regression():
     return None
