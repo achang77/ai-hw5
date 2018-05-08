@@ -2,27 +2,6 @@ import scipy
 import numpy as np
 from sklearn import linear_model
 
-
-# sample data sent by Freenor
-"""
-Go through first 20 slot machines 30 pulls each to generate data 
-
-Machine 11 - string, cost, payoff
-data["slots"][11][0] = metadata list
-data["slots"][11][1] = cost list
-data["slots"][11][2] = payoff list
-data["slots"][11][3] = average cost
-data["slots"][11][4] = beta distribution model
-#attributes: alpha, beta, lower limit, scale
-"""
-
-state = {"team-code": "eef8976e",
-"game": "phase_1",
-"pulls-left": 99999,
-"last-cost": 0.75,
-"last-payoff": 20.7,
-"last-metadata": "00110101"}
-
 # where we store our data and models
 data = {
     "slots": [[[], [], [], [], []] for x in range(100)],
@@ -51,29 +30,6 @@ switches = {
     "low_switch": parameters["low_samples"]*len(parameters["slots_low_sample"]) + parameters["medium_samples"]*len(parameters["slots_medium_sample"]) + parameters["high_samples"]*len(parameters["slots_high_sample"]),
     "best_n_switch": parameters["best_n_to_pull_trials"]*parameters["best_n_to_pull"]
 }
-
-#Slot info class - too ambitious
-# class Slot(object):
-#     metadata: []
-#     cost: []
-#     payoff: []
-#     average_cost: []
-#     beta_model: []
-#
-#     # The class "constructor" - It's actually an initializer
-#     def __init__(self, metadata, cost, payoff, average_cost, beta_model):
-#         self.metadata = metadata
-#         self.cost = cost
-#         self.payoff = payoff
-#         self.average_cost = average_cost
-#         self.beta_model = beta_model
-#
-# def make_student(name, age, major):
-#     student = Student(name, age, major)
-#     return student
-
-#pull n-th slot machine and save data
-
 
 def set_last_slot_and_ret_slot(n):
     data["last_slot"] = n
@@ -153,66 +109,6 @@ def rank_slots():
     data["models"] = beta_models
     return predict_and_ret_best_slots(beta_models)
 
-
-def get_move(state):
-
-	if state["game"] == "phase_2_a"
-		return  phase2a(state)
-	if state["game"] == "phase_2_b"
-
-
-    data["turn"] = data["turn"] + 1
-    n = data["last_slot"]
-
-    if(data["turn"]==0):
-        return {
-            "team-code": state["team-code"],
-            "game": "phase_1",
-            "pull": parameters["slots_high_sample"][0]
-        }
-
-    load = load_data()
-    # store last metadata string
-    data["slots"][n][0].append(state["last-metadata"])
-    # store last cost
-    data["slots"][n][1].append(state["last-cost"])
-    # store last payoff
-    data["slots"][n][2].append(state["last-payoff"])
-
-    # pull each high sample slots n times
-    if data["turn"] < switches["high_switch"]:
-        i = data["turn"] % parameters["high_samples"]
-        return set_last_slot_and_ret_slot(parameters["slots_high_sample"][i])
-
-    if data["turn"] < switches["medium_switch"]:
-        i = (data["turn"] -  switches["high_switch"]) % parameters["medium_samples"]
-        return set_last_slot_and_ret_slot(parameters["slots_high_sample"][i])
-
-    if data["turn"] < switches["low_switch"]:
-        i = (data["turn"] - switches["medium_switch"]) % parameters["low_samples"]
-        return set_last_slot_and_ret_slot(parameters["slots_high_sample"][i])
-
-    data["best"] = rank_slots()
-    i = data["turn"] - switches["low_switch"]
-    if i % switches["best_n_switch"] == 0:
-        data["best"] = rank_slots()
-
-    return set_last_slot_and_ret_slot(best[i % parameters["best_n_to_pull"]])
-
-
-
-
-"""
-value popularity
-0 001   0
-1 123   1
-
-"""
-
-#phase 2
-
-
-
 def phase2a(state):
 	best = data["best"]	
 	public_bids = [ [best[99-i][0] for i in range(10)]  	
@@ -264,6 +160,53 @@ def phase2b(state):
 		"game": "phase_2_b",
 		"bid": 0,
 		}
+def get_move(state):
+
+	if state["game"] == "phase_2_a"
+		return  phase2a(state)
+	if state["game"] == "phase_2_b"
+		return phase2b(state)
+
+
+    data["turn"] = data["turn"] + 1
+    n = data["last_slot"]
+
+    if(data["turn"]==0):
+        return {
+            "team-code": state["team-code"],
+            "game": "phase_1",
+            "pull": parameters["slots_high_sample"][0]
+        }
+
+    load = load_data()
+    # store last metadata string
+    data["slots"][n][0].append(state["last-metadata"])
+    # store last cost
+    data["slots"][n][1].append(state["last-cost"])
+    # store last payoff
+    data["slots"][n][2].append(state["last-payoff"])
+
+    # pull each high sample slots n times
+    if data["turn"] < switches["high_switch"]:
+        i = data["turn"] % parameters["high_samples"]
+        return set_last_slot_and_ret_slot(parameters["slots_high_sample"][i])
+
+    if data["turn"] < switches["medium_switch"]:
+        i = (data["turn"] -  switches["high_switch"]) % parameters["medium_samples"]
+        return set_last_slot_and_ret_slot(parameters["slots_high_sample"][i])
+
+    if data["turn"] < switches["low_switch"]:
+        i = (data["turn"] - switches["medium_switch"]) % parameters["low_samples"]
+        return set_last_slot_and_ret_slot(parameters["slots_high_sample"][i])
+
+    data["best"] = rank_slots()
+    i = data["turn"] - switches["low_switch"]
+    if i % switches["best_n_switch"] == 0:
+        data["best"] = rank_slots()
+
+    return set_last_slot_and_ret_slot(best[i % parameters["best_n_to_pull"]])
+
+
 
 
 
