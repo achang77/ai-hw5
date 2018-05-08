@@ -28,6 +28,7 @@ data = {
     "slots": [[[], [], [], [], []] for x in range(100)],
     "turn": 0, #-1?
     "last_slot": None
+    "best": None
 }
 
 parameters = {
@@ -172,10 +173,29 @@ def get_move():
 
     if data["turn"] < switches["low_switch"]:
         return set_last_slot_and_ret_slot(data["turn"] % parameters["low_samples"])
+    
+    data[best = rank_slots()
+    switches["low_switch"] + switches["medium_switch"] + switches["high_switch"] 
 
-    best = rank_slots()
+    return set_last_slot_and_ret_slot() 
 
 
+#phase 2
+
+popular_slots = []
+for i in range(100):
+ 	popular_slots.append(i, len(state["auction-lists"][i]),)
+sorted(popular_slots, key=lambda x: x[1])
+pop_slots = []
+for i in popular_slots:
+	pop_slots.append(i[0])
+best_slots = data["best"]
+b_slots = []
+for i in best_slots:
+	b_slots.append(i[0])
+for i in range(100)
+	v = b_slots.index(i)+1
+	p = pop_slots.index(i)+1
 
 
 
