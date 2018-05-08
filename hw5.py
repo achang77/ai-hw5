@@ -230,17 +230,19 @@ def get_move(state):
 
     if i == 200:
         parameters["best_n_to_pull"] = 10
+        switches["best_n_switch"] = parameters["best_n_to_pull_trials"] * parameters["best_n_to_pull"]
 
     if i == 300:
         parameters["best_n_to_pull"] = 7
+        switches["best_n_switch"] = parameters["best_n_to_pull_trials"] * parameters["best_n_to_pull"]
 
     if i == 400:
         parameters["best_n_to_pull"] = 5
+        switches["best_n_switch"] = parameters["best_n_to_pull_trials"] * parameters["best_n_to_pull"]
 
     if i == 500:
         parameters["best_n_to_pull"] = 3
-
-
+        switches["best_n_switch"] = parameters["best_n_to_pull_trials"] * parameters["best_n_to_pull"]
 
     return set_last_slot_and_ret_slot(data["best"][i % parameters["best_n_to_pull"]][0])
 
