@@ -33,12 +33,24 @@ if __name__ == "__main__":
         slot_machines["scale"].append(bit_to_int(i[6:8]))
         slot_machines["cost"].append(randint(0, 9))
 
-    prev_slot = hw5.get_move()
+    state = {"team-code": "eef8976e",
+             "game": "phase_1",
+             "pulls-left": 10000,
+             "last-cost": 0,
+             "last-payoff": 0,
+             "last-metadata": "00000001"}
+
+    move = hw5.get_move(state)
+    prev_slot = move["pull"]
+
     for i in range(9999):
+        print(prev_slot)
+        print(slot_machines["cost"][prev_slot])
         state = {"team-code": "eef8976e",
             "game": "phase_1",
             "pulls-left": 10000-i,
             "last-cost": slot_machines["cost"][prev_slot],
             "last-payoff": get_rand_beta_var(prev_slot, slot_machines),
             "last-metadata": slot_machines["ebn"][prev_slot]}
-        prev_slot = hw5.get_move(state)
+        move = hw5.get_move(state)
+        prev_slot = move["pull"]
