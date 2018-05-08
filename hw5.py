@@ -206,6 +206,7 @@ def get_move(state):
 value popularity
 0 001   0
 1 123   1
+
 """
 
 #phase 2
@@ -242,11 +243,16 @@ def phase2b(state):
 			slots_perf_per_pop.append(i, value-popularity)
 		sorted(slots_val_per_pop, key=lambda x: x[1], reverse = True) # higher is better
 		public_bids = data["public-bids"]	
-		data["secret-bids"] = [slots_perf_per_pop[x][0] for x in range(100) if slots_perf_per_pop[x][0] not in public_bids]
-	
+		
+		secret_bids = [slots_perf_per_pop[x][0] for x in range(100) if slots_perf_per_pop[x][0] not in public_bids]
+
+		data["secret-bids"] = [ secret_bids[x] for x in range(5) ]
+
+
 	if state["auction-number"] in data["public-bids"] or state["auction-number"] in data["secret-bids"]:
 		slot_to_bid = state["auction-number"]
 		bid = data["expectations"][slot_to_bid][1]*10000.0
+		
 		return {
 		"team-code": state["team-code"],
 		"game": "phase_2_b",
