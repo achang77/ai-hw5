@@ -2,27 +2,6 @@ import scipy
 import numpy as np
 from sklearn import linear_model
 
-
-# sample data sent by Freenor
-"""
-Go through first 20 slot machines 30 pulls each to generate data 
-
-Machine 11 - string, cost, payoff
-data["slots"][11][0] = metadata list
-data["slots"][11][1] = cost list
-data["slots"][11][2] = payoff list
-data["slots"][11][3] = average cost
-data["slots"][11][4] = beta distribution model
-#attributes: alpha, beta, lower limit, scale
-"""
-
-state = {"team-code": "eef8976e",
-"game": "phase_1",
-"pulls-left": 99999,
-"last-cost": 0.75,
-"last-payoff": 20.7,
-"last-metadata": "00110101"}
-
 # where we store our data and models
 data = {
     "slots": [[[], [], [], [], []] for x in range(100)],
@@ -51,29 +30,6 @@ switches = {
     "low_switch": parameters["low_samples"]*len(parameters["slots_low_sample"]) + parameters["medium_samples"]*len(parameters["slots_medium_sample"]) + parameters["high_samples"]*len(parameters["slots_high_sample"]),
     "best_n_switch": parameters["best_n_to_pull_trials"]*parameters["best_n_to_pull"]
 }
-
-#Slot info class - too ambitious
-# class Slot(object):
-#     metadata: []
-#     cost: []
-#     payoff: []
-#     average_cost: []
-#     beta_model: []
-#
-#     # The class "constructor" - It's actually an initializer
-#     def __init__(self, metadata, cost, payoff, average_cost, beta_model):
-#         self.metadata = metadata
-#         self.cost = cost
-#         self.payoff = payoff
-#         self.average_cost = average_cost
-#         self.beta_model = beta_model
-#
-# def make_student(name, age, major):
-#     student = Student(name, age, major)
-#     return student
-
-#pull n-th slot machine and save data
-
 
 def set_last_slot_and_ret_slot(n):
     data["last_slot"] = n
@@ -153,12 +109,63 @@ def rank_slots():
     data["models"] = beta_models
     return predict_and_ret_best_slots(beta_models)
 
+def phase2a(state):
+	best = data["best"]	
+	public_bids = [ [best[99-i][0] for i in range(10)]  	
+	data["public-bids"] = public_bids
+	return{
+	"team-code": state["team-code"],
+	"game": "phase_2_a",
+	"auctions": publicbids
+	}
 
+def phase2b(state):
+	if data["secret-bids"] is None:
+		popular_slots = []
+		for i in range(100):
+		 	popular_slots.append(i, len(state["auction-lists"][i]),)
+		sorted(popular_slots, key=lambda x: x[1])		
+		pop_slots = []	
+		for i in popular_slots:
+			pop_slots.append(i[0])		
+		best_slots = data["best"]	
+		b_slots = []		
+		for i in best_slots:	
+			b_slots.append(i[0])		
+		slots_perf_per_pop = []			
+		for i in range(100):	
+			value = b_slots.index(i)
+			popularity = pop_slots.index(i)
+			slots_perf_per_pop.append(i, value-popularity)
+		sorted(slots_val_per_pop, key=lambda x: x[1], reverse = True) # higher is better
+		public_bids = data["public-bids"]	
+		
+		secret_bids = [slots_perf_per_pop[x][0] for x in range(100) if slots_perf_per_pop[x][0] not in public_bids]
+
+		data["secret-bids"] = [ secret_bids[x] for x in range(5) ]
+
+
+	if state["auction-number"] in data["public-bids"] or state["auction-number"] in data["secret-bids"]:
+		slot_to_bid = state["auction-number"]
+		bid = data["expectations"][slot_to_bid][1]*10000.0
+		
+		return {
+		"team-code": state["team-code"],
+		"game": "phase_2_b",
+		"bid": bid,
+		}
+
+	return {
+		"team-code": state["team-code"],
+		"game": "phase_2_b",
+		"bid": 0,
+		}
 def get_move(state):
 
 	if state["game"] == "phase_2_a"
 		return  phase2a(state)
 	if state["game"] == "phase_2_b"
+		return phase2b(state)
 
 
     data["turn"] = data["turn"] + 1
@@ -200,64 +207,6 @@ def get_move(state):
     return set_last_slot_and_ret_slot(best[i % parameters["best_n_to_pull"]])
 
 
-
-
-"""
-value popularity
-0 001   0
-1 123   1
-"""
-
-#phase 2
-
-
-
-def phase2a(state):
-	best = data["best"]	
-	public_bids = [ [best[99-i][0] for i in range(10)]  	
-	data["public-bids"] = public_bids
-	return{
-	"team-code": state["team-code"],
-	"game": "phase_2_a",
-	"auctions": publicbids
-	}
-
-def phase2b(state):
-	if data["secret-bids"] is None:
-		popular_slots = []
-		for i in range(100):
-		 	popular_slots.append(i, len(state["auction-lists"][i]),)
-		sorted(popular_slots, key=lambda x: x[1])		
-		pop_slots = []	
-		for i in popular_slots:
-			pop_slots.append(i[0])		
-		best_slots = data["best"]	
-		b_slots = []		
-		for i in best_slots:	
-			b_slots.append(i[0])		
-		slots_perf_per_pop = []			
-		for i in range(100):	
-			value = b_slots.index(i)
-			popularity = pop_slots.index(i)
-			slots_perf_per_pop.append(i, value-popularity)
-		sorted(slots_val_per_pop, key=lambda x: x[1], reverse = True) # higher is better
-		public_bids = data["public-bids"]	
-		data["secret-bids"] = [slots_perf_per_pop[x][0] for x in range(100) if slots_perf_per_pop[x][0] not in public_bids]
-	
-	if state["auction-number"] in data["public-bids"] or state["auction-number"] in data["secret-bids"]:
-		slot_to_bid = state["auction-number"]
-		bid = data["expectations"][slot_to_bid][1]*10000.0
-		return {
-		"team-code": state["team-code"],
-		"game": "phase_2_b",
-		"bid": bid,
-		}
-
-	return {
-		"team-code": state["team-code"],
-		"game": "phase_2_b",
-		"bid": 0,
-		}
 
 
 
