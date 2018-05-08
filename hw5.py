@@ -122,7 +122,7 @@ def predict_and_ret_best_slots(beta_models):
         loc_expected = beta_models['loc'].predict([data["slots"][i][0][0], data["slots"][i][0][1], data["slots"][i][0][2], data["slots"][i][0][3], data["slots"][i][0][4], data["slots"][i][0][5], data["slots"][i][0][6], data["slots"][i][0][7]])
         scale_expected = beta_models['scale'].predict([data["slots"][i][0][0], data["slots"][i][0][1], data["slots"][i][0][2], data["slots"][i][0][3], data["slots"][i][0][4], data["slots"][i][0][5], data["slots"][i][0][6], data["slots"][i][0][7]])
         bm_expected = scipy.stats.beta.mean(alpha_expected, beta_expected, loc_expected, scale_expected)
-        mean_expected = np.mean(data["slots"][11][i])
+        mean_expected = np.mean(data["slots"][i][2])
         cost = data["slots"][i][1]
         # weight actual means higher than averages
         # model is included because it may provide insight into high impact low probability payout values
@@ -174,4 +174,4 @@ def get_move():
     if data["turn"] < switches["low_switch"]:
         return set_last_slot_and_ret_slot(data["turn"] % parameters["low_samples"])
 
-    next_slots_to_pull = rank_slots()
+    best = rank_slots()
