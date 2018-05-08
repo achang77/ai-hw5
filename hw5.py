@@ -14,13 +14,13 @@ data = {
 }
 
 parameters = {
-    "high_samples": 30,
-    "medium_samples": 20,
-    "low_samples": 10,
+    "high_samples": 10,
+    "medium_samples": 7,
+    "low_samples": 5,
     "slots_high_sample": range(70, 80),
     "slots_medium_sample": range(80, 100),
     "slots_low_sample": range(0, 70),
-    "best_n_to_pull": 5,
+    "best_n_to_pull": 20,
     "best_n_to_pull_trials": 10,
 }
 
@@ -227,6 +227,20 @@ def get_move(state):
     i = data["turn"] - switches["low_switch"]
     if i % switches["best_n_switch"] == 0:
         data["best"] = rank_slots()
+
+    if i == 200:
+        parameters["best_n_to_pull"] = 10
+
+    if i == 300:
+        parameters["best_n_to_pull"] = 7
+
+    if i == 400:
+        parameters["best_n_to_pull"] = 5
+
+    if i == 500:
+        parameters["best_n_to_pull"] = 3
+
+
 
     return set_last_slot_and_ret_slot(data["best"][i % parameters["best_n_to_pull"]][0])
 
