@@ -99,6 +99,7 @@ def build_models():
 def predict_and_ret_best_slots(beta_models):
     slots_to_pull = []
     data["expectations"] = []
+    diagnostics = []
     for i in range(0, len(data["slots"])):
 
         p1 = int(data["slots"][i][0][0][0])
@@ -117,12 +118,16 @@ def predict_and_ret_best_slots(beta_models):
         bm_expected = scipy.stats.beta.mean(alpha_expected[0], beta_expected[0], loc_expected[0], scale_expected[0])
         mean_expected = np.mean(data["slots"][i][2][0])
         cost = data["slots"][i][1][0]
+        gain_expected = 0.3 * bm_expected + 0.7 * mean_expected - cost
+        diagnostics.append(["Slot: " + str(i), "Mean expected: " + str(mean_expected), "Beta Model Expected: " + str(bm_expected), "Cost: " + str(cost), "Gain expected: " + str(gain_expected)])
 
         # weight actual means higher than averages
         # model is included because it may provide insight into high impact low probability payout values
-        slots_to_pull.append([i, 0.3 * bm_expected + 0.7 * mean_expected - cost])
+        slots_to_pull.append([i, gain_expected])
+        data["expectations"].append([i, gain_expected])
 
-        data["expectations"].append([i, 0.3 * bm_expected + 0.7 * mean_expected - cost])
+    for x in diagnostics:
+        print(x)
 
     ranked_slots = sorted(slots_to_pull, key=lambda x: x[1], reverse=True)
     return ranked_slots
@@ -219,7 +224,6 @@ def get_move(state):
         i = (data["turn"] - switches["medium_switch"]) % len(parameters["slots_low_sample"])
         return set_last_slot_and_ret_slot(parameters["slots_low_sample"][i])
 
-    data["best"] = rank_slots()
     i = data["turn"] - switches["low_switch"]
     if i % switches["best_n_switch"] == 0:
         data["best"] = rank_slots()

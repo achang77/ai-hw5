@@ -44,13 +44,15 @@ if __name__ == "__main__":
     prev_slot = move["pull"]
 
     for i in range(9999):
-        print(prev_slot)
-        print(slot_machines["cost"][prev_slot])
+
         state = {"team-code": "eef8976e",
             "game": "phase_1",
             "pulls-left": 10000-i,
             "last-cost": slot_machines["cost"][prev_slot],
             "last-payoff": get_rand_beta_var(prev_slot, slot_machines),
             "last-metadata": slot_machines["ebn"][prev_slot]}
+
+        print("Slot: " + str(prev_slot) + " Payoff: " + str(state["last-payoff"]) + " Cost: " + str(slot_machines["cost"][prev_slot]))
+
         move = hw5.get_move(state)
         prev_slot = move["pull"]
