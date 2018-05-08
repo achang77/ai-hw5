@@ -26,7 +26,7 @@ state = {"team-code": "eef8976e",
 # where we store our data and models
 data = {
     "slots": [[[], [], [], [], []] for x in range(100)],
-    "turn": 0,
+    "turn": -1,
     "last_slot": None
 }
 
@@ -37,14 +37,15 @@ parameters = {
     "slots_high_sample": range(70, 80),
     "slots_medium_sample": range(80, 100),
     "slots_low_sample": range(0, 70),
-    "best_n_to_pull": 10,
+    "best_n_to_pull": 5,
     "best_n_to_pull_trials": 10,
 }
 
 switches = {
     "high_switch": parameters["high_samples"]*len(parameters["slots_high_sample"]),
     "medium_switch": parameters["medium_samples"]*len(parameters["slots_medium_sample"]) + parameters["high_samples"]*len(parameters["slots_high_sample"]),
-    "low_switch": parameters["low_samples"]*len(parameters["slots_low_sample"]) + parameters["medium_samples"]*len(parameters["slots_medium_sample"]) + parameters["high_samples"]*len(parameters["slots_high_sample"])
+    "low_switch": parameters["low_samples"]*len(parameters["slots_low_sample"]) + parameters["medium_samples"]*len(parameters["slots_medium_sample"]) + parameters["high_samples"]*len(parameters["slots_high_sample"]),
+    "best_n_switch": parameters["best_n_to_pull_trials"]*parameters["best_n_to_pull"]
 }
 
 #Slot info class - too ambitious
@@ -114,6 +115,14 @@ def phase1c(beta_model_vars):
     return {'alpha': alpha.fit(predictors, beta_model_vars[:, 9]), 'beta': beta.fit(predictors, beta_model_vars[:, 10]), 'loc': loc.fit(predictors, beta_model_vars[:, 11]), 'scale': scale.fit(predictors, beta_model_vars[:, 12])}
 
 
+def build_models():
+    beta_model_vars = []
+    phase1b(parameters["slots_high_sample"], beta_model_vars, 3)
+    phase1b(parameters["slots_medium_sample"], beta_model_vars, 2)
+    phase1b(parameters["slots_low_sample"], beta_model_vars, 1)
+
+    return phase1c(beta_model_vars)
+
 def predict_and_ret_best_slots(beta_models):
     slots_to_pull = []
     for i in range(0, len(data["slots"])):
@@ -129,15 +138,6 @@ def predict_and_ret_best_slots(beta_models):
         slots_to_pull.append(i, 0.3 * bm_expected + 0.7 * mean_expected - cost)
     sorted(slots_to_pull, key=lambda x: x[1])
     return slots_to_pull
-
-
-def build_models():
-    beta_model_vars = []
-    phase1b(parameters["slots_high_sample"], beta_model_vars, 3)
-    phase1b(parameters["slots_medium_sample"], beta_model_vars, 2)
-    phase1b(parameters["slots_low_sample"], beta_model_vars, 1)
-
-    return phase1c(beta_model_vars)
 
 
 def rank_slots():
@@ -166,12 +166,21 @@ def get_move():
 
     # pull each high sample slots n times
     if data["turn"] < switches["high_switch"]:
-        return set_last_slot_and_ret_slot(data["turn"] % parameters["high_samples"])
+        i = data["turn"] % parameters["high_samples"]
+        return set_last_slot_and_ret_slot(parameters["slots_high_sample"][i])
 
     if data["turn"] < switches["medium_switch"]:
-        return set_last_slot_and_ret_slot(data["turn"] % parameters["high_samples"])
+        i = (data["turn"] -  switches["high_switch"]) % parameters["medium_samples"]
+        return set_last_slot_and_ret_slot(parameters["slots_high_sample"][i])
 
     if data["turn"] < switches["low_switch"]:
-        return set_last_slot_and_ret_slot(data["turn"] % parameters["low_samples"])
+        i = (data["turn"] - switches["medium_switch"]) % parameters["low_samples"]
+        return set_last_slot_and_ret_slot(parameters["slots_high_sample"][i])
 
     best = rank_slots()
+    i = data["turn"] - switches["low_switch"]
+    if i % switches["best_n_switch"] == 0:
+        best = rank_slots()
+
+    return set_last_slot_and_ret_slot(best[i % parameters["best_n_to_pull"]])
+
