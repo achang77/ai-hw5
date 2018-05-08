@@ -28,6 +28,7 @@ data = {
     "slots": [[[], [], [], [], []] for x in range(100)],
     "turn": -1,
     "last_slot": None
+    "best": None
 }
 
 parameters = {
@@ -177,10 +178,46 @@ def get_move():
         i = (data["turn"] - switches["medium_switch"]) % parameters["low_samples"]
         return set_last_slot_and_ret_slot(parameters["slots_high_sample"][i])
 
-    best = rank_slots()
+    data["best"] = rank_slots()
     i = data["turn"] - switches["low_switch"]
     if i % switches["best_n_switch"] == 0:
-        best = rank_slots()
+        data["best"] = rank_slots()
 
     return set_last_slot_and_ret_slot(best[i % parameters["best_n_to_pull"]])
 
+
+
+
+"""
+value popularity
+0 001   0
+1 123   1
+"""
+
+#phase 2
+best = data["best"]
+for i in range(10):
+
+popular_slots = []
+for i in range(100):
+ 	popular_slots.append(i, len(state["auction-lists"][i]),)
+sorted(popular_slots, key=lambda x: x[1])
+
+pop_slots = []
+for i in popular_slots:
+	pop_slots.append(i[0])
+best_slots = data["best"]
+b_slots = []
+
+for i in best_slots:
+	b_slots.append(i[0])
+
+slots_perf_per_pop = []
+
+for i in range(100):
+	value = b_slots.index(i)
+	popularity = pop_slots.index(i)
+	slots_perf_per_pop.append(i, value-popularity)
+sorted(slots_val_per_pop, key=lambda x: x[1], reverse = True) # higher is better
+
+secretbids = [slots_perf_per_pop[x][0] for x in range(10)]
